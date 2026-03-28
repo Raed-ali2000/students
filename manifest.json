@@ -1,0 +1,23 @@
+{
+  "name": "إدارة الطلاب",
+  "short_name": "الطلاب",
+  "description": "نظام إدارة درجات الطلاب",
+  "start_url": "/students/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#3b82f6",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/3b82f6/ffffff?text=S",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/3b82f6/ffffff?text=S",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
