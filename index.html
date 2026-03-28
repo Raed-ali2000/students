@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#3b82f6" />
+<title>نظام إدارة الطلاب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg-primary:#f0f4f8;--bg-card:#fff;--bg-input:#f8fafc;--bg-hover:#f1f5f9;
+  --text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
+  --border:#e2e8f0;--border-focus:#3b82f6;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);--shadow-xl:0 20px 60px rgba(0,0,0,.16);
+  --radius-sm:8px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;
+  --accent:#3b82f6;--accent-light:#eff6ff;
+  --success:#10b981;--success-light:#ecfdf5;
+  --warning:#f59e0b;--warning-light:#fffbeb;
+  --danger:#ef4444;--danger-light:#fef2f2;
+  --navbar-bg:rgba(255,255,255,.9);--tr:all .3s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --bg-primary:#09090b;--bg-card:#18181b;--bg-input:#1c1c20;--bg-hover:#27272a;
+  --text-primary:#f8fafc;--text-secondary:#a1a1aa;--text-muted:#52525b;
+  --border:#27272a;--border-focus:#60a5fa;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);--shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.6);--shadow-xl:0 20px 60px rgba(0,0,0,.75);
+  --accent-light:#1e3a5f;--success-light:#052e16;--warning-light:#422006;--danger-light:#450a0a;
+  --navbar-bg:rgba(9,9,11,.9);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{direction:rtl;scroll-behavior:smooth}
+body{font-family:'Cairo',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;transition:background .4s,color .4s;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg-primary)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.bg-deco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-deco::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.07) 0%,transparent 70%)}
+.bg-deco::after{content:'';position:absolute;bottom:-200px;left:-200px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)}
+/* Navbar */
+.navbar{position:fixed;top:0;inset-inline:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:64px;display:flex;align-items:center;padding:0 24px;gap:16px;transition:var(--tr)}
+.nav-brand{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:800;color:var(--text-primary);cursor:pointer;flex-shrink:0}
+.nav-brand-icon{width:38px;height:38px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+.nav-bc{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--text-secondary);flex:1;overflow:hidden}
+.nav-bc .sep{color:var(--text-muted)}
+.nav-bc .crumb{color:var(--text-secondary);cursor:pointer;transition:color .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-bc .crumb:hover{color:var(--accent)}
+.nav-bc .crumb.active{color:var(--text-primary);font-weight:600}
+.nav-btn{width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:var(--tr)}
+.nav-btn:hover{background:var(--bg-hover);color:var(--text-primary);transform:translateY(-1px)}
+/* Layout */
+.main-content{padding-top:64px;min-height:100vh;position:relative;z-index:1}
+.page{display:none;animation:pgIn .38s cubic-bezier(.4,0,.2,1)}
+.page.active{display:block}
+@keyframes pgIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:1200px;margin:0 auto;padding:30px 22px}
+.ph{margin-bottom:26px}
+.ph .sub{font-size:.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.ph h1{font-size:1.85rem;font-weight:800;line-height:1.2}
+.ph p{color:var(--text-secondary);margin-top:5px;font-size:.88rem}
+.sec-lbl{font-size:.71rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:11px;margin-top:3px;display:flex;align-items:center;gap:8px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Home stats */
+.home-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:26px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:17px;display:flex;align-items:center;gap:13px;transition:var(--tr);box-shadow:var(--shadow-sm)}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-icon{width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.stat-val{font-size:1.4rem;font-weight:800;line-height:1}
+.stat-lbl{font-size:.74rem;color:var(--text-secondary);margin-top:3px}
+/* Class cards */
+.classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:17px}
+.class-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:var(--tr);box-shadow:var(--shadow-sm)}
+.class-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl);border-color:transparent}
+.cc-header{padding:24px 22px 17px;position:relative;overflow:hidden}
+.cc-header::before{content:'';position:absolute;inset:0;opacity:.12;background:var(--cg,#3b82f6);transition:opacity .3s}
+.class-card:hover .cc-header::before{opacity:.22}
+.cc-icon{font-size:2.2rem;margin-bottom:9px;position:relative}
+.cc-name{font-size:1.15rem;font-weight:800;position:relative}
+.cc-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.71rem;font-weight:600;margin-top:7px;position:relative}
+.cc-body{padding:17px 22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cc-stat{text-align:center}
+.cc-stat .num{font-size:1.35rem;font-weight:800;line-height:1}
+.cc-stat .lbl{font-size:.68rem;color:var(--text-muted);margin-top:3px}
+.cc-div{width:1px;height:36px;background:var(--border)}
+.cc-arrow{width:33px;height:33px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:var(--tr);font-size:.88rem}
+.class-card:hover .cc-arrow{background:var(--accent);color:#fff;transform:translateX(-4px)}
+/* Toolbar */
+.class-toolbar{display:flex;align-items:center;gap:9px;margin-bottom:20px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:175px}
+.search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.86rem;pointer-events:none}
+.search-input{width:100%;padding:9px 36px 9px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-primary);font-family:inherit;font-size:.86rem;transition:var(--tr);outline:none}
+.search-input::placeholder{color:var(--text-muted)}
+.search-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.tbtn{padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-secondary);font-family:inherit;font-size:.81rem;font-weight:600;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tbtn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.tbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.add-btn{padding:9px 15px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.81rem;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.add-btn:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.35)}
+.excel-btn{padding:9px 15px;background:linear-gradient(135deg,#166534,#16a34a);color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:.81rem;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:5px;white-space:nowrap;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+.excel-btn:hover{background:linear-gradient(135deg,#14532d,#15803d);transform:translateY(-1px);box-shadow:0 5px 16px rgba(22,163,74,.4)}
+/* Student list */
+.students-list{display:flex;flex-direction:column;gap:8px}
+.student-item{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 17px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:var(--tr);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.student-item::before{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--sc,var(--border));border-radius:0 var(--radius-sm) var(--radius-sm) 0;transition:width .3s}
+.student-item:hover{border-color:var(--sc,var(--accent));transform:translateX(-3px);box-shadow:var(--shadow-md)}
+.student-item:hover::before{width:6px}
+.s-rank{width:29px;height:29px;border-radius:50%;background:var(--bg-hover);display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;color:var(--text-muted);flex-shrink:0}
+.s-avatar{width:41px;height:41px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.92rem;font-weight:800;flex-shrink:0;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.s-info{flex:1;min-width:0}
+.s-name{font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-sub{font-size:.72rem;color:var(--text-muted);margin-top:2px}
+.gbadge{padding:4px 11px;border-radius:20px;font-size:.76rem;font-weight:700;white-space:nowrap;flex-shrink:0}
+.gbadge.ex{background:var(--success-light);color:var(--success)}
+.gbadge.pass{background:var(--warning-light);color:#d97706}
+.gbadge.fail{background:var(--danger-light);color:var(--danger)}
+.gbadge.none{background:var(--bg-hover);color:var(--text-muted)}
+.s-arrow{color:var(--text-muted);font-size:.86rem;transition:transform .2s;flex-shrink:0}
+.student-item:hover .s-arrow{transform:translateX(-3px);color:var(--accent)}
+.s-del{width:29px;height:29px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;transition:var(--tr);font-size:.8rem;flex-shrink:0;opacity:0}
+.student-item:hover .s-del{opacity:1}
+.s-del:hover{background:var(--danger-light);color:var(--danger)}
+/* Student page */
+.sp-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm)}
+.card-title{font-size:.93rem;font-weight:700;margin-bottom:17px;display:flex;align-items:center;gap:8px}
+.card-title .ic{width:29px;height:29px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:.88rem}
+.sp-profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px}
+.sp-avatar{width:82px;height:82px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.sp-name{font-size:1.08rem;font-weight:800}
+.sp-cls{font-size:.8rem;color:var(--text-muted);margin-top:2px}
+.res-sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;width:100%;margin-top:5px}
+.res-box{padding:11px 5px;border-radius:var(--radius-md);text-align:center;background:var(--bg-hover);border:1px solid var(--border)}
+.res-box .rv{font-size:1.35rem;font-weight:900;line-height:1}
+.res-box .rl{font-size:.66rem;color:var(--text-muted);margin-top:3px}
+.res-box.total{background:var(--accent-light);border-color:rgba(59,130,246,.2)}.res-box.total .rv{color:var(--accent)}
+.res-box.avg.ex{background:var(--success-light);border-color:rgba(16,185,129,.2)}.res-box.avg.ex .rv{color:var(--success)}
+.res-box.avg.pass{background:var(--warning-light);border-color:rgba(245,158,11,.2)}.res-box.avg.pass .rv{color:var(--warning)}
+.res-box.avg.fail{background:var(--danger-light);border-color:rgba(239,68,68,.2)}.res-box.avg.fail .rv{color:var(--danger)}
+.res-box.sts.pass{background:var(--success-light);border-color:rgba(16,185,129,.2)}.res-box.sts.pass .rv{color:var(--success)}
+.res-box.sts.fail{background:var(--danger-light);border-color:rgba(239,68,68,.2)}.res-box.sts.fail .rv{color:var(--danger)}
+/* Grade inputs */
+.grade-fields{display:flex;flex-direction:column;gap:13px}
+.grade-field{display:flex;flex-direction:column;gap:6px}
+.grade-label{font-size:.8rem;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:7px}
+.mdot{width:8px;height:8px;border-radius:50%}
+.grade-input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:.93rem;font-weight:600;transition:var(--tr);outline:none;text-align:center}
+.grade-input::placeholder{color:var(--text-muted);font-weight:400}
+.grade-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--bg-card)}
+.grade-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:2px}
+.grade-bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s cubic-bezier(.4,0,.2,1),background .3s;width:0%}
+.notes-ta{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:.86rem;line-height:1.6;resize:vertical;min-height:90px;transition:var(--tr);outline:none}
+.notes-ta::placeholder{color:var(--text-muted)}
+.notes-ta:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--bg-card)}
+.save-ind{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--success);margin-top:6px;opacity:0;transition:opacity .3s}
+.save-ind.show{opacity:1}
+.grade-legend{margin-top:20px;padding:13px;background:var(--bg-hover);border-radius:var(--radius-sm);font-size:.74rem}
+.grade-legend .gl-title{font-weight:700;color:var(--text-secondary);margin-bottom:6px}
+.grade-legend .gl-items{display:flex;gap:14px;flex-wrap:wrap}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px}
+.sbc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.sbc::after{content:attr(data-icon);position:absolute;left:14px;bottom:-4px;font-size:3rem;opacity:.07;user-select:none}
+.sbc-lbl{font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sbc-val{font-size:2rem;font-weight:900;line-height:1}
+.sbc-sub{font-size:.74rem;color:var(--text-secondary);margin-top:4px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-wrap{position:relative;height:170px;display:flex;align-items:flex-end;gap:6px;padding:0 3px}
+.chart-bg{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.chart-bar{width:100%;min-height:4px;border-radius:4px 4px 0 0;transition:height .8s cubic-bezier(.4,0,.2,1);position:relative;cursor:default}
+.chart-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--text-primary);color:var(--bg-primary);padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.chart-lbl{font-size:.64rem;color:var(--text-muted);font-weight:600;text-align:center;line-height:1.2}
+.hl-students{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.hl-item{background:var(--bg-hover);border-radius:var(--radius-md);padding:11px 13px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)}
+.hl-icon{font-size:1.3rem;flex-shrink:0}
+.hl-name{font-weight:700;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl-grade{font-size:.74rem;margin-top:2px;font-weight:600}
+.dist-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:10px 0 6px}
+.dist-seg{transition:width .8s cubic-bezier(.4,0,.2,1)}
+.dist-legend{display:flex;gap:13px;font-size:.74rem}
+.dist-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-left:4px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-secondary);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--tr);margin-bottom:20px}
+.back-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:28px;width:100%;max-width:420px;box-shadow:var(--shadow-xl);transform:scale(.9) translateY(20px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.modal-overlay.show .modal{transform:scale(1) translateY(0)}
+.modal-title{font-size:1rem;font-weight:800;margin-bottom:16px}
+.modal-input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-primary);font-family:inherit;font-size:.9rem;outline:none;transition:var(--tr);margin-bottom:13px}
+.modal-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal-cancel{padding:8px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--tr)}
+.modal-cancel:hover{background:var(--bg-hover)}
+.modal-confirm{padding:8px 16px;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.modal-confirm:hover{background:#2563eb}
+/* Toast */
+.toast-ct{position:fixed;bottom:20px;left:20px;z-index:300;display:flex;flex-direction:column;gap:6px}
+.toast{padding:10px 16px;border-radius:var(--radius-md);font-size:.8rem;font-weight:600;box-shadow:var(--shadow-lg);animation:tIn .3s ease,tOut .3s ease 2.5s forwards;display:flex;align-items:center;gap:6px;max-width:250px}
+.toast.success{background:var(--success);color:#fff}
+.toast.error{background:var(--danger);color:#fff}
+.toast.info{background:var(--accent);color:#fff}
+@keyframes tIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateY(16px)}}
+.empty-state{text-align:center;padding:52px 20px;color:var(--text-muted)}
+.empty-state .ei{font-size:2.6rem;margin-bottom:12px;opacity:.5}
+@media(max-width:900px){.home-stats{grid-template-columns:repeat(2,1fr)}.stats-grid{grid-template-columns:repeat(2,1fr)}.sp-layout{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}}
+@media(max-width:600px){.container{padding:16px 13px}.ph h1{font-size:1.35rem}.classes-grid{grid-template-columns:1fr}.home-stats{grid-template-columns:repeat(2,1fr);gap:8px}.class-toolbar{flex-direction:column;align-items:stretch}.hl-students{grid-template-columns:1fr}.navbar{padding:0 13px}}
+</style>
+</head>
+<body>
+<div class="bg-deco"></div>
+<nav class="navbar">
+  <div class="nav-brand" id="homeLink"><div class="nav-brand-icon">🎓</div><span>إدارة الطلاب</span></div>
+  <div class="nav-bc" id="breadcrumb"></div>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <button class="nav-btn" id="themeToggle" title="الوضع الليلي">🌙</button>
+  </div>
+</nav>
+<main class="main-content">
+
+<!-- HOME -->
+<div class="page" id="home-page">
+  <div class="container">
+    <div class="ph">
+      <div class="sub">لوحة التحكم</div>
+      <h1>إدارة الشُّعب الدراسية 📚</h1>
+      <p>الصف الأول مهني — المبادئ الأساسية للحاسبات</p>
+    </div>
+    <div class="home-stats">
+      <div class="stat-card"><div class="stat-icon" style="background:#eff6ff;color:#3b82f6">👥</div><div><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">إجمالي الطلاب</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4;color:#10b981">📝</div><div><div class="stat-val" id="stat-graded">0</div><div class="stat-lbl">مُقيَّم</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#ecfdf5;color:#059669">✅</div><div><div class="stat-val" id="stat-pass">0</div><div class="stat-lbl">ناجح</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#fef2f2;color:#ef4444">❌</div><div><div class="stat-val" id="stat-fail">0</div><div class="stat-lbl">راسب</div></div></div>
+    </div>
+    <div class="sec-lbl">الشُّعب الدراسية</div>
+    <div class="classes-grid" id="classes-grid"></div>
+  </div>
+</div>
+
+<!-- CLASS -->
+<div class="page" id="class-page">
+  <div class="container">
+    <div class="ph">
+      <div class="sub">الشعبة الدراسية</div>
+      <h1><span id="class-icon"></span> <span id="class-title"></span></h1>
+      <p id="class-count"></p>
+    </div>
+    <div class="class-toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" class="search-input" id="class-search" placeholder="ابحث عن طالب..." autocomplete="off" /></div>
+      <button class="tbtn" id="sort-btn">أبجدي 🔤</button>
+      <button class="tbtn" id="stats-btn">إحصائيات 📊</button>
+      <button class="excel-btn" id="export-btn">📊 تصدير Excel</button>
+      <button class="add-btn" id="add-btn">+ إضافة طالب</button>
+    </div>
+    <div class="sec-lbl">قائمة الطلاب</div>
+    <div class="students-list" id="students-list"></div>
+  </div>
+</div>
+
+<!-- STUDENT -->
+<div class="page" id="student-page">
+  <div class="container">
+    <button class="back-btn" id="sp-back">← العودة للشعبة</button>
+    <div class="sp-layout">
+      <div style="display:flex;flex-direction:column;gap:17px">
+        <div class="card">
+          <div class="sp-profile">
+            <div class="sp-avatar" id="sp-avatar"></div>
+            <div><div class="sp-name" id="sp-name"></div><div class="sp-cls" id="sp-cls"></div></div>
+            <div class="res-sum">
+              <div class="res-box total"><div class="rv" id="res-total">—</div><div class="rl">المجموع</div></div>
+              <div class="res-box avg" id="avg-box"><div class="rv" id="res-avg">—</div><div class="rl">المعدل</div></div>
+              <div class="res-box sts" id="sts-box"><div class="rv" id="res-sts" style="font-size:.88rem">—</div><div class="rl">النتيجة</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="ic" style="background:#f0fdf4;color:#10b981">📝</div>الملاحظات</div>
+          <textarea class="notes-ta" id="student-notes" placeholder="أضف ملاحظاتك عن الطالب هنا..." rows="4"></textarea>
+          <div class="save-ind" id="save-ind">✓ تم الحفظ تلقائياً</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="ic" style="background:#eff6ff;color:#3b82f6">📊</div>إدخال الدرجات</div>
+        <div class="grade-fields">
+          <div class="grade-field">
+            <div class="grade-label"><span class="mdot" style="background:#3b82f6"></span>الشهر الأول</div>
+            <input type="number" class="grade-input" id="grade-m1" placeholder="0 - 100" min="0" max="100" step="0.5" />
+            <div class="grade-bar"><div class="grade-bar-fill" id="bar-m1"></div></div>
+          </div>
+          <div class="grade-field">
+            <div class="grade-label"><span class="mdot" style="background:#8b5cf6"></span>الشهر الثاني</div>
+            <input type="number" class="grade-input" id="grade-m2" placeholder="0 - 100" min="0" max="100" step="0.5" />
+            <div class="grade-bar"><div class="grade-bar-fill" id="bar-m2"></div></div>
+          </div>
+          <div class="grade-field">
+            <div class="grade-label"><span class="mdot" style="background:#10b981"></span>الشهر الثالث</div>
+            <input type="number" class="grade-input" id="grade-m3" placeholder="0 - 100" min="0" max="100" step="0.5" />
+            <div class="grade-bar"><div class="grade-bar-fill" id="bar-m3"></div></div>
+          </div>
+        </div>
+        <div class="grade-legend">
+          <div class="gl-title">مقياس التقييم</div>
+          <div class="gl-items">
+            <span><span style="color:var(--success);font-weight:700">●</span> ممتاز: 80-100</span>
+            <span><span style="color:var(--warning);font-weight:700">●</span> ناجح: 50-79</span>
+            <span><span style="color:var(--danger);font-weight:700">●</span> راسب: أقل من 50</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="page" id="stats-page">
+  <div class="container">
+    <button class="back-btn" id="stats-back">← العودة للشعبة</button>
+    <div class="ph"><div class="sub">الإحصائيات</div><h1 id="stats-title">📊 إحصائيات الشعبة</h1></div>
+    <div class="stats-grid">
+      <div class="sbc" data-icon="👥"><div class="sbc-lbl">إجمالي الطلاب</div><div class="sbc-val" id="st-total" style="color:var(--accent)">—</div><div class="sbc-sub">طالب مسجل</div></div>
+      <div class="sbc" data-icon="📝"><div class="sbc-lbl">مُقيَّم</div><div class="sbc-val" id="st-graded">—</div><div class="sbc-sub">طالب مُقيَّم</div></div>
+      <div class="sbc" data-icon="✅"><div class="sbc-lbl">ناجح</div><div class="sbc-val" id="st-pass" style="color:var(--success)">—</div><div class="sbc-sub">معدل ≥ 50</div></div>
+      <div class="sbc" data-icon="❌"><div class="sbc-lbl">راسب</div><div class="sbc-val" id="st-fail" style="color:var(--danger)">—</div><div class="sbc-sub">معدل &lt; 50</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="card">
+        <div class="card-title"><div class="ic" style="background:#eff6ff;color:#3b82f6">📈</div>الأداء العام</div>
+        <div style="display:flex;gap:17px;margin-bottom:17px">
+          <div style="text-align:center;flex:1"><div style="font-size:2.3rem;font-weight:900;color:var(--accent)" id="st-avg">—</div><div style="font-size:.72rem;color:var(--text-muted);margin-top:2px">معدل الشعبة</div></div>
+          <div style="text-align:center;flex:1"><div style="font-size:2.3rem;font-weight:900;color:var(--success)" id="st-exc">—</div><div style="font-size:.72rem;color:var(--text-muted);margin-top:2px">طلاب ممتازون</div></div>
+        </div>
+        <div class="sec-lbl">توزيع النتائج</div>
+        <div class="dist-bar"><div class="dist-seg" id="dist-pass" style="background:var(--success)"></div><div class="dist-seg" id="dist-fail" style="background:var(--danger)"></div></div>
+        <div class="dist-legend">
+          <span><span class="dist-dot" style="background:var(--success)"></span><span id="dist-pass-lbl">ناجح</span></span>
+          <span><span class="dist-dot" style="background:var(--danger)"></span><span id="dist-fail-lbl">راسب</span></span>
+        </div>
+        <div class="sec-lbl" style="margin-top:17px">أفضل وأدنى طالب</div>
+        <div class="hl-students"><div class="hl-item" id="top-student"></div><div class="hl-item" id="bottom-student"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="ic" style="background:#fef3c7;color:#f59e0b">📊</div>توزيع الدرجات</div>
+        <div class="chart-wrap" id="grade-chart"></div>
+        <div style="margin-top:17px"><button class="excel-btn" id="stats-export-btn" style="width:100%;justify-content:center">📊 تصدير بيانات الشعبة — Excel</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">➕ إضافة طالب جديد</div>
+    <input type="text" class="modal-input" id="modal-input" placeholder="اكتب اسم الطالب كاملاً..." autocomplete="off" />
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modal-cancel">إلغاء</button>
+      <button class="modal-confirm" id="modal-confirm">إضافة</button>
+    </div>
+  </div>
+</div>
+<div class="toast-ct" id="toast-ct"></div>
+
+<script>
+'use strict';
+
+const DATA={classes:{
+  A:{name:'الحاسبات A',icon:'💻',color:'#3b82f6',gradient:'linear-gradient(135deg,#1e3a5f,#3b82f6)',
+    students:['ابراهيم احمد ابراهيم','احمد ثائر عبدالكريم','احمد ثائر محمود','احمد جاسم عبدالرحمن','احمد سالم علي','احمد ماجد خلف','احمد ماجد فزع حميد','احمد مصلح تركي','ادهم عادل محمد','اسامه ماجد عبد','اسامه مهند عيد','انس عبد احمد','انس عصام حمد','انس مرتضى هلال','بسام محمد فرج','حارث نقيب ناجي','حذيفه مجيد تركي','حسام قيصر فيصل','خالد ابراهيم محمد طه','خطاب علاء محمد','خطاب عمر هلال شيحان','خطاب لاحج علي مخلف','رغيد ادريس صبخ سلوم','سامر ثابت محمد','سليم سعدي جاسم','سيف عدنان سليمان','طالب ماجد شهاب','عبدالله احمد محمد','عثمان معجل محمد','علي ماجد محمد عبد','علي محمد محمود','عمر جمال حميد','عمر ضاري خميس','عمر عبدالوهاب احمد','عمر محمد امين','عمر نهاد موسى','عمر ياسر عباس','فاروق بحر فياض','ماجد رائد خليفه','محمد اسعد محمد','محمد سعد عبدالله','محمد عبد الهادي احميد','محمد عثمان اخضير','محمد مشتاق احمد','مصطفى رميض احمد','وسام محمد علي عفتان','حذيفه حامد محمد عبد','عبدالرحمن مزهر هلال','علاء عمر حايد','غسان عباس محمد','عمار ياسر محمود']},
+  B:{name:'الحاسبات B',icon:'🖥️',color:'#8b5cf6',gradient:'linear-gradient(135deg,#2d1b69,#8b5cf6)',
+    students:['احمد صادق عايد مطلك','احمد علي احمد سليمان','احمد محمد هاشم حمادي','احمد ياسر احمد عبدالله','امين عفات عوده حسان','انس احمد عباس محمود','انور صدام طارق جاسم','بسام مقبل صبر جفال','بلال عبدالجبار عباس','ثائر محمد عبد احمد','خطاب عمر عبد صالح','خطاب عمر عبدالله حميد','رواد كريم حامد','سامر بركات ناهي هلال','سجاد لؤي عيال عايد','عبدالحميد عبود كريم شلال','عبدالله اركان جمعه عليوي','عبدالله أنور عبدالكريم','عبدالملك زياد خليف','عثمان محمد سطام','عثمان مهند سبيع','علي ثائر عواد احمد','علي سعدي ابراهيم عبد','علي صالح خلف علاوي','علي علاء حسين محمد','علي نقيب حسين','علي زهير جسام محمد','عماد جمعه فارس حنتوش','عماد خميس عبدالله','عمار ياسر احمد عبدالله','عمار ياسر سامي','عمار يوسف احمد درج','عمر خلدون مخلف','عمر عقيل صباح خلف','غيث علاء حاتم','فارس باسم محمد لاحج','قاسم علي حميد','قتيبة فلاح مشرف دخيل','قيصر جاسم محمد احمد','كرار احمد علاوي','محمد احمد ذياب','محمد جاسم محمد','محمد علاء نوري فرحان','محمد عماد خلف حماد','مخلد وليد مخلف','منتظر جمال احمد','يوسف سمير إبراهيم','يونس محمود شاكر','عبد القادر محمد صبار','عمر صلاح علي']},
+  C:{name:'الحاسبات C',icon:'⌨️',color:'#10b981',gradient:'linear-gradient(135deg,#064e3b,#10b981)',
+    students:['احمد محمد إبراهيم بداع','إسماعيل عبد الستار خليل','اسيد احمد حامد فرحان','حسام وسام علي','داود محمد عاشور','رسول مجيد خليل','طارق زياد علي','عبدالله ياسر احمد','علي قحطان إسماعيل','عمار زياد خلف','عمر فارس جميل','عيسى صالح خلف','فاضل زياد فاضل','فهد مصطفى جابر','محمد اكرم موسى','محمد ثامر ابراهيم','محمد حميد فرحان صبار','محمد ظافر حسين محمد','محمد عماد عدنان','محمد فارس احمد','محمد فراس مهيدي','محمد ماهر عوده فرحان','محمد معد فرحان محمد','محمد نبيل محمد رشيد','محمد نوري محمد خلف','محمود عامر عوده فرحان','مشعان حوسيم مشعان','مصطفى ذاكر فلاح حسن','مصطفى علي سليمان عبد','مصطفى فلاح مطر محمد','مصطفى فوزي صبري','مصطفى كريم عبد','مصطفى محمد عبد صالح','معتز دلف ابراهيم','معتز عنتر فرج مخلف','معتز ياسين محمد','منتظر ماهر عبد','مهند خليل حمود','مؤمن علي صبري فرحان','نذير ضاري كَواد','نشأت بشار محمد فرحان','نهاد احمد درج حمادي','نور الدين حامد فاضل','نور الدين حميد خلف','نورالدين عبدالقاهر صداع','ياسر خليل مجبل','يعقوب ايوب داود','يوسف احمد مهدي','يوسف عثمان سطاي فياض','يوسف محمد ناهي','يونس قحطان سطاي فياض','محمد سمير عبد']},
+  D:{name:'الحاسبات D',icon:'🔧',color:'#f59e0b',gradient:'linear-gradient(135deg,#78350f,#f59e0b)',
+    students:['إبراهيم احمد إبراهيم','ابراهيم هيثم ذياب','احمد روضان شياع','احمد اسماعيل حامد','احمد بلال احمد','احمد ثامر إسماعيل','احمد عادل عبدالله صالح','احمد لؤي مجبل','احمد مهند ياسين','احمد هيثم جهاد دايح','انس اثير إبراهيم','انس عبد إبراهيم','براء سفيان إسماعيل','بكر حماد محل','بكر عمر سعدي','جاسم محمد مشهد','حسين علي محمد','حمزة رشيد عبيد','حميد عدنان هوير','خطاب عبود محيي','خطاب عمر علي','خطاب عمر محمد','رياض رائد خلف','زيد احمد حمد','زيد اسعد احمد','سجاد احمد سويد','سجاد خالد علي','سجاد فراس اسماعيل','سفيان عدي حميد','سيف بسام محمد','صبري رزاق صالح','صلاح عبد علي','عبدالله جمال عبد','عبدالله عبد الكريم تركي','عبدالله فراس محمد جراد','عبدالله محمد عباس','عبدالله وسام تحسين','عثمان حامد محمد','علي جاسم محمد','علي محمد إسماعيل محمد','عمار احمد مصلح','عمار عزيز تحسين','عمر احمد راشد','عمر خليفة خلف','عمر محمد عطية','كيلان حامد فرحان','محمد احمد حسن','محمد احمد محمد مطلك','محمد لطيف شعيب صالح','مصطفى عمار جاسم','مصطفى محمد ياسين','معتز عدي خلف','منتظر حسين علي','ميثم حماد عفات']},
+  Cyber:{name:'الأمن السيبراني',icon:'🛡️',color:'#ef4444',gradient:'linear-gradient(135deg,#7f1d1d,#ef4444)',
+    students:['احمد حارث محمد','احمد سعد خلف','احمد عبد الستار عبد الجبار','اسحق يوسف حربي','المنتصر بالله عبدالستار حمود','ايمن سمير عبد خلف','ايمن عمار علي عبود','أيوب حميد خليل ابراهيم','ايوب ماجد علي عبود','ايهم راضي خلف','بسام جمال عبد صالح','حارث عامر كامل','حذيفه خليل ابراهيم','حسين احمد حمزه ناصر','حمزه عناد علي','حمزه ياسر عطالله فاضل','حيدر حسين علي','خطاب باسم رياح صبار','خطاب عمر محمود','رويد حميد علي عبود','سامر محمد خلف','سراج الدين محمد مخلف','عبد الرحمن سعيد عبد','عبد الرحمن كريم احمد','عبدالله هذال عبيد نايل','علاء محمد عباس عنفوص','علي محمد عبد فياض','عمار ياسر يوسف عيسى','عمر ربيع عباس إسماعيل','محمد احمد فرحان جسام','محمد حسن محمد','محمد سمير عيد','محمد صالح عبد صالح','محمد عمر نجم الدين','محمد عادل محمد دحام','محمد ماجد عبدصالح','محمد ناجي إسماعيل رجب','محمد هيثم حاتم مفرج','مصطفى عمار حميد علي','مصطفى يوسف خضير مرموص','هشام محمد احمد فارس','وسام صباح سعد جراد','وليد خالد رياح','ياسر عمار محسن ثلوج','يونس حامد شهاب']}
+}};
+
+// Storage
+const gk=(c,i)=>`g_${c}_${i}`;
+const getG=(c,i)=>{try{return JSON.parse(localStorage.getItem(gk(c,i)))||{};}catch{return{};}};
+const saveG=(c,i,g)=>localStorage.setItem(gk(c,i),JSON.stringify(g));
+
+// Grade helpers — pass = 50
+function calcRaw(g){
+  const has=g.m1!==undefined||g.m2!==undefined||g.m3!==undefined;
+  if(!has)return null;
+  return((+g.m1||0)+(+g.m2||0)+(+g.m3||0))/3;
+}
+const calcAvg=g=>{const r=calcRaw(g);return r===null?null:Math.round(r);};
+const gcls=avg=>avg===null?'none':avg>=80?'ex':avg>=50?'pass':'fail';
+const glbl=avg=>avg===null?'—':avg>=80?'ممتاز':avg>=50?'ناجح':'راسب';
+const gres=avg=>avg===null?'—':avg>=50?'ناجح':'راسب';
+const gcol=avg=>avg===null?'var(--text-muted)':avg>=80?'var(--success)':avg>=50?'var(--warning)':'var(--danger)';
+const bcol=v=>v>=80?'var(--success)':v>=50?'var(--warning)':'var(--danger)';
+const ini=n=>n.trim().charAt(0);
+
+// Theme
+function initTheme(){
+  const t=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themeToggle').textContent=t==='dark'?'☀️':'🌙';
+}
+function toggleTheme(){
+  const c=document.documentElement.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);
+  localStorage.setItem('theme',n);
+  document.getElementById('themeToggle').textContent=n==='dark'?'☀️':'🌙';
+}
+
+// Router
+const getHash=()=>location.hash.replace('#','')||'home';
+const go=p=>{location.hash=p;};
+const App={currentClass:null,currentStudent:null,sortAlpha:false,searchQuery:'',saveTimer:null};
+
+function route(){
+  const h=getHash(),p=h.split('/');
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  App.searchQuery='';App.sortAlpha=false;
+  if(p[0]==='class'&&p[1]){App.currentClass=p[1];renderClass(p[1]);}
+  else if(p[0]==='student'&&p[1]&&p[2]!==undefined){App.currentClass=p[1];App.currentStudent=+p[2];renderStudent(p[1],+p[2]);}
+  else if(p[0]==='stats'&&p[1]){App.currentClass=p[1];renderStats(p[1]);}
+  else{App.currentClass=null;renderHome();}
+  updateBC();window.scrollTo(0,0);
+}
+
+function updateBC(){
+  const p=getHash().split('/');
+  let h=`<span class="crumb" onclick="go('home')">الرئيسية</span>`;
+  if(App.currentClass&&p[0]!=='home'){
+    const c=DATA.classes[App.currentClass];
+    h+=`<span class="sep">›</span><span class="crumb" onclick="go('class/${App.currentClass}')">${c?.name||App.currentClass}</span>`;
+  }
+  if(p[0]==='student'&&App.currentStudent!==null){
+    const nm=DATA.classes[App.currentClass]?.students[App.currentStudent]||'';
+    h+=`<span class="sep">›</span><span class="crumb active">${nm}</span>`;
+  }else if(p[0]==='stats'){
+    h+=`<span class="sep">›</span><span class="crumb active">الإحصائيات</span>`;
+  }
+  document.getElementById('breadcrumb').innerHTML=h;
+}
+
+// Home
+function renderHome(){
+  document.getElementById('home-page').classList.add('active');
+  let tot=0,graded=0,pass=0,fail=0;
+  Object.entries(DATA.classes).forEach(([id,cls])=>{
+    tot+=cls.students.length;
+    cls.students.forEach((_,i)=>{const avg=calcAvg(getG(id,i));if(avg!==null){graded++;if(avg>=50)pass++;else fail++;}});
+  });
+  document.getElementById('stat-total').textContent=tot;
+  document.getElementById('stat-graded').textContent=graded;
+  document.getElementById('stat-pass').textContent=pass;
+  document.getElementById('stat-fail').textContent=fail;
+  document.getElementById('classes-grid').innerHTML=Object.entries(DATA.classes).map(([id,cls])=>{
+    let g=0,s=0,p=0;
+    cls.students.forEach((_,i)=>{const avg=calcAvg(getG(id,i));if(avg!==null){g++;s+=avg;if(avg>=50)p++;}});
+    const ca=g?(s/g).toFixed(1):'—';
+    const pg=Math.round(g/cls.students.length*100);
+    return `<div class="class-card" onclick="go('class/${id}')" style="--cg:${cls.gradient}">
+      <div class="cc-header"><div class="cc-icon">${cls.icon}</div><div class="cc-name">${cls.name}</div>
+      <div class="cc-badge" style="background:${cls.color}22;color:${cls.color}">${pg}% مكتمل</div></div>
+      <div class="cc-body">
+        <div class="cc-stat"><div class="num">${cls.students.length}</div><div class="lbl">طالب</div></div>
+        <div class="cc-div"></div>
+        <div class="cc-stat"><div class="num">${g}</div><div class="lbl">مُقيَّم</div></div>
+        <div class="cc-div"></div>
+        <div class="cc-stat"><div class="num" style="color:${cls.color}">${ca}</div><div class="lbl">المعدل</div></div>
+        <div class="cc-arrow">←</div>
+      </div></div>`;
+  }).join('');
+}
+
+// Class
+function renderClass(cid){
+  document.getElementById('class-page').classList.add('active');
+  const cls=DATA.classes[cid];
+  document.getElementById('class-icon').textContent=cls.icon;
+  document.getElementById('class-title').textContent=cls.name;
+  document.getElementById('class-count').textContent=`${cls.students.length} طالب`;
+  const srch=document.getElementById('class-search');
+  srch.value='';
+  srch.oninput=e=>{App.searchQuery=e.target.value;renderList(cid);};
+  const sb=document.getElementById('sort-btn');
+  sb.classList.remove('active');
+  sb.onclick=()=>{App.sortAlpha=!App.sortAlpha;sb.classList.toggle('active',App.sortAlpha);renderList(cid);};
+  document.getElementById('stats-btn').onclick=()=>go(`stats/${cid}`);
+  document.getElementById('export-btn').onclick=()=>exportExcel(cid);
+  document.getElementById('add-btn').onclick=()=>openModal(cid);
+  renderList(cid);
+}
+
+function renderList(cid){
+  const cls=DATA.classes[cid];
+  const q=App.searchQuery.toLowerCase().trim();
+  let list=cls.students.map((name,idx)=>({name,idx}));
+  if(q)list=list.filter(s=>s.name.toLowerCase().includes(q));
+  if(App.sortAlpha)list.sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  if(!list.length){document.getElementById('students-list').innerHTML=`<div class="empty-state"><div class="ei">🔍</div><p>لا توجد نتائج</p></div>`;return;}
+  document.getElementById('students-list').innerHTML=list.map((s,rank)=>{
+    const g=getG(cid,s.idx),avg=calcAvg(g),col=gcol(avg);
+    return `<div class="student-item" style="--sc:${col}" onclick="go('student/${cid}/${s.idx}')">
+      <div class="s-rank">${rank+1}</div>
+      <div class="s-avatar" style="background:${col}">${ini(s.name)}</div>
+      <div class="s-info"><div class="s-name">${s.name}</div><div class="s-sub">${avg!==null?`معدل: ${avg}`:'لم يُقيَّم بعد'}</div></div>
+      <div class="gbadge ${gcls(avg)}">${avg!==null?avg:'—'} | ${glbl(avg)}</div>
+      <div class="s-arrow">←</div>
+      <button class="s-del" onclick="event.stopPropagation();delStudent('${cid}',${s.idx})" title="حذف">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+// Student
+function renderStudent(cid,idx){
+  document.getElementById('student-page').classList.add('active');
+  const cls=DATA.classes[cid],name=cls.students[idx];
+  if(!name)return;
+  const grades=getG(cid,idx);
+  document.getElementById('sp-name').textContent=name;
+  document.getElementById('sp-cls').textContent=cls.name;
+  document.getElementById('sp-avatar').textContent=ini(name);
+  document.getElementById('sp-avatar').style.background=cls.color;
+  document.getElementById('sp-back').onclick=()=>go(`class/${cid}`);
+  ['m1','m2','m3'].forEach(m=>{
+    const inp=document.getElementById(`grade-${m}`);
+    inp.value=grades[m]??'';
+    updBar(m,inp.value);
+    inp.oninput=()=>{
+      let v=inp.value;
+      if(v!==''&&+v>100){v='100';inp.value=v;}
+      if(v!==''&&+v<0){v='0';inp.value=v;}
+      grades[m]=v===''?undefined:+v;
+      updBar(m,v);updResults(grades);schedSave(cid,idx,grades);
+    };
+  });
+  const notes=document.getElementById('student-notes');
+  notes.value=grades.notes||'';
+  notes.oninput=()=>{grades.notes=notes.value;schedSave(cid,idx,grades);};
+  updResults(grades);
+}
+
+function updBar(m,val){
+  const bar=document.getElementById(`bar-${m}`);if(!bar)return;
+  const pct=val===''?0:Math.min(100,Math.max(0,+val||0));
+  bar.style.width=pct+'%';bar.style.background=pct===0?'var(--border)':bcol(pct);
+}
+
+function updResults(g){
+  const rawAvg=calcRaw(g),avg=rawAvg===null?null:Math.round(rawAvg);
+  const total=(+g.m1||0)+(+g.m2||0)+(+g.m3||0);
+  document.getElementById('res-total').textContent=avg!==null?total.toFixed(1):'—';
+  const ae=document.getElementById('res-avg');ae.textContent=avg??'—';ae.style.color=gcol(avg);
+  const se=document.getElementById('res-sts');se.textContent=gres(avg);
+  se.style.color=avg!==null&&avg>=50?'var(--success)':'var(--danger)';
+  document.getElementById('avg-box').className=`res-box avg ${gcls(avg)}`;
+  document.getElementById('sts-box').className=`res-box sts ${avg!==null?(avg>=50?'pass':'fail'):''}`;
+}
+
+function schedSave(cid,idx,g){
+  clearTimeout(App.saveTimer);
+  App.saveTimer=setTimeout(()=>{
+    saveG(cid,idx,g);
+    const ind=document.getElementById('save-ind');
+    if(ind){ind.classList.add('show');setTimeout(()=>ind.classList.remove('show'),2000);}
+  },500);
+}
+
+// Stats
+function renderStats(cid){
+  document.getElementById('stats-page').classList.add('active');
+  const cls=DATA.classes[cid];
+  document.getElementById('stats-title').textContent=`📊 إحصائيات ${cls.name}`;
+  document.getElementById('stats-back').onclick=()=>go(`class/${cid}`);
+  document.getElementById('stats-export-btn').onclick=()=>exportExcel(cid);
+  const all=cls.students.map((name,idx)=>({name,avg:calcAvg(getG(cid,idx))}));
+  const graded=all.filter(s=>s.avg!==null);
+  const pass=graded.filter(s=>s.avg>=50).length;
+  const fail=graded.filter(s=>s.avg<50).length;
+  const exc=graded.filter(s=>s.avg>=80).length;
+  const cavg=graded.length?(graded.reduce((s,x)=>s+x.avg,0)/graded.length).toFixed(1):'—';
+  document.getElementById('st-total').textContent=all.length;
+  document.getElementById('st-graded').textContent=graded.length;
+  document.getElementById('st-pass').textContent=pass;
+  document.getElementById('st-fail').textContent=fail;
+  document.getElementById('st-avg').textContent=cavg;
+  document.getElementById('st-exc').textContent=exc;
+  const pp=graded.length?Math.round(pass/graded.length*100):0;
+  document.getElementById('dist-pass').style.width=pp+'%';
+  document.getElementById('dist-fail').style.width=(100-pp)+'%';
+  document.getElementById('dist-pass-lbl').textContent=`ناجح ${pp}%`;
+  document.getElementById('dist-fail-lbl').textContent=`راسب ${100-pp}%`;
+  const sorted=[...graded].sort((a,b)=>b.avg-a.avg);
+  const top=sorted[0],bot=sorted[sorted.length-1];
+  document.getElementById('top-student').innerHTML=top
+    ?`<div class="hl-icon">🥇</div><div style="min-width:0"><div class="hl-name">${top.name}</div><div class="hl-grade" style="color:var(--success)">معدل: ${top.avg}</div></div>`
+    :'<div style="color:var(--text-muted);font-size:.8rem">لا بيانات</div>';
+  document.getElementById('bottom-student').innerHTML=bot
+    ?`<div class="hl-icon">📉</div><div style="min-width:0"><div class="hl-name">${bot.name}</div><div class="hl-grade" style="color:var(--danger)">معدل: ${bot.avg}</div></div>`
+    :'<div style="color:var(--text-muted);font-size:.8rem">لا بيانات</div>';
+  const ranges=[{l:'90-100',mn:90,mx:101,c:'#059669'},{l:'80-89',mn:80,mx:90,c:'#10b981'},{l:'70-79',mn:70,mx:80,c:'#f59e0b'},{l:'60-69',mn:60,mx:70,c:'#fbbf24'},{l:'50-59',mn:50,mx:60,c:'#fb923c'},{l:'أقل 50',mn:0,mx:50,c:'#ef4444'}];
+  const mx2=Math.max(...ranges.map(r=>graded.filter(s=>s.avg>=r.mn&&s.avg<r.mx).length),1);
+  document.getElementById('grade-chart').innerHTML=ranges.map(r=>{
+    const cnt=graded.filter(s=>s.avg>=r.mn&&s.avg<r.mx).length;
+    return `<div class="chart-bg"><div class="chart-bar" style="height:${Math.max(4,(cnt/mx2)*155)}px;background:${r.c}" data-tip="${cnt} طالب"></div><div class="chart-lbl">${r.l}</div></div>`;
+  }).join('');
+}
+
+// ── Excel Export — Pure JS real .xlsx (ZIP + OpenXML) — works on ALL devices ──
+function exportExcel(cid){
+  const cls=DATA.classes[cid];
+
+  // ── Mini ZIP builder (store, no compression) ──
+  const _enc=new TextEncoder();
+  const _u8=s=>_enc.encode(s);
+  const _u16=n=>new Uint8Array([n&0xFF,(n>>8)&0xFF]);
+  const _u32=n=>{n>>>=0;return new Uint8Array([n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>24)&0xFF]);};
+  function _cat(){
+    const args=[].slice.call(arguments);
+    const tot=args.reduce((s,a)=>s+a.length,0);
+    const out=new Uint8Array(tot);let p=0;
+    args.forEach(a=>{out.set(a,p);p+=a.length;});
+    return out;
+  }
+  const _CRC=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}return t;})();
+  function _crc(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=_CRC[(c^d[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+
+  function makeZip(files){
+    const locs=[],cds=[];let off=0;
+    for(const f of files){
+      const nm=_u8(f.name);
+      const dat=f.data instanceof Uint8Array?f.data:_u8(f.data);
+      const cr=_u32(_crc(dat)),sz=_u32(dat.length),nl=_u16(nm.length);
+      const lh=_cat(new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0,0,0,0,0,0,0,0x21,0x4A]),cr,sz,sz,nl,_u16(0));
+      const cd=_cat(new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0,0x14,0,0,0,0,0,0,0,0x21,0x4A]),cr,sz,sz,nl,_u16(0),_u16(0),_u16(0),_u16(0),new Uint8Array([0,0,0,0]),_u32(off));
+      locs.push(lh,nm,dat);cds.push(cd,nm);
+      off+=lh.length+nm.length+dat.length;
+    }
+    const n=files.length;
+    const cdB=_cat.apply(null,cds);
+    const eocd=_cat(new Uint8Array([0x50,0x4B,0x05,0x06,0,0,0,0]),_u16(n),_u16(n),_u32(cdB.length),_u32(off),_u16(0));
+    return _cat.apply(null,locs.concat([cdB,eocd]));
+  }
+
+  // ── XML escape ──
+  const xe=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // ── Shared strings ──
+  const SS=[],SI={};
+  const si=s=>{s=String(s);if(SI[s]===undefined){SI[s]=SS.length;SS.push(s);}return SI[s];};
+  const titleStr=`الصف الأول مهني — المبادئ الأساسية للحاسبات — ${cls.name}`;
+  const subStr=`الشعبة: ${cls.name} | عدد الطلاب: ${cls.students.length} | درجة النجاح: 50 فأكثر`;
+  [titleStr,subStr,'ت','اسم الطالب','الشهر الأول','الشهر الثاني','الشهر الثالث','المعدل','النتيجة','ناجح','راسب','—','الملخص الإجمالي'].forEach(si);
+  cls.students.forEach(si);
+
+  // ── Styles XML ──
+  // fills[0]=none, [1]=gray125, [2..]=custom
+  const FC=['none','gray125','#1e3a5f','#2563eb','#1e40af','#f0fdf4','#dcfce7','#15803d','#fffbeb','#fef3c7','#d97706','#fff1f2','#fee2e2','#dc2626','#f8fafc','#f1f5f9'];
+  const rgb=h=>'FF'+h.replace('#','').toUpperCase();
+  const fillsX=FC.map((c,i)=>i===0?'<fill><patternFill patternType="none"/></fill>':i===1?'<fill><patternFill patternType="gray125"/></fill>':`<fill><patternFill patternType="solid"><fgColor rgb="${rgb(c)}"/></patternFill></fill>`).join('');
+
+  // fonts: [size, bold, italic, colorARGB]
+  const FD=[[10,0,0,'FF334155'],[14,1,0,'FFFFFFFF'],[11,1,0,'FFFFFFFF'],[10,1,1,'FFFFFFFF'],
+    [10,0,0,'FF14532d'],[10,1,0,'FF14532d'],[10,1,0,'FFFFFFFF'],
+    [10,0,0,'FF78350f'],[10,1,0,'FF92400e'],[10,1,0,'FFFFFFFF'],
+    [10,0,0,'FF7f1d1d'],[10,1,0,'FF9f1239'],[10,1,0,'FFFFFFFF'],
+    [10,0,0,'FF64748b'],[11,1,0,'FFFFFFFF']];
+  const fontsX=FD.map(f=>`<font><sz val="${f[0]}"/><name val="Arial"/>${f[1]?'<b/>':''}${f[2]?'<i/>':''}<color rgb="${f[3]}"/></font>`).join('');
+
+  const BD1=`<border><left style="thin"><color rgb="FFB0BEC5"/></left><right style="thin"><color rgb="FFB0BEC5"/></right><top style="thin"><color rgb="FFB0BEC5"/></top><bottom style="thin"><color rgb="FFB0BEC5"/></bottom><diagonal/></border>`;
+  const BD2=`<border><left style="medium"><color rgb="FF1e3a5f"/></left><right style="medium"><color rgb="FF1e3a5f"/></right><top style="medium"><color rgb="FF1e3a5f"/></top><bottom style="medium"><color rgb="FF1e3a5f"/></bottom><diagonal/></border>`;
+  const BD0=`<border><left/><right/><top/><bottom/><diagonal/></border>`;
+
+  // xfs: [fontId, fillId, borderId, halign, valign]
+  // index: 0=default 1=title 2=subtitle 3=hdr-dark 4=hdr-med
+  //        5=exc-name 6=exc-num 7=exc-res
+  //        8=pass-name 9=pass-num 10=pass-res
+  //        11=fail-name 12=fail-num 13=fail-res
+  //        14=none-name 15=none-num 16=summary
+  const XF=[[0,0,0,'center','center'],[1,2,2,'center','center'],[3,3,1,'center','center'],
+    [2,2,2,'center','center'],[2,4,1,'center','center'],
+    [4,5,1,'right','center'],[5,6,1,'center','center'],[6,7,1,'center','center'],
+    [7,8,1,'right','center'],[8,9,1,'center','center'],[9,10,1,'center','center'],
+    [10,11,1,'right','center'],[11,12,1,'center','center'],[12,13,1,'center','center'],
+    [13,14,1,'right','center'],[13,15,1,'center','center'],[14,2,2,'center','center']];
+  const xfsX=XF.map(x=>`<xf numFmtId="0" fontId="${x[0]}" fillId="${x[1]}" borderId="${x[2]}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${x[3]}" vertical="${x[4]}" readingOrder="2"/></xf>`).join('');
+
+  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${FD.length}">${fontsX}</fonts><fills count="${FC.length}">${fillsX}</fills><borders count="3">${BD0}${BD1}${BD2}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${XF.length}">${xfsX}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+
+  // ── Worksheet ──
+  const sc=(c,r,sid,s)=>`<c r="${c}${r}" t="s" s="${s}"><v>${sid}</v></c>`;
+  const nc=(c,r,v,s)=>`<c r="${c}${r}" t="n" s="${s}"><v>${v}</v></c>`;
+  const ec=(c,r,s)=>`<c r="${c}${r}" s="${s}"/>`;
+  const COLS=['A','B','C','D','E','F','G'];
+  let wd='',row=1,mrg=[];
+
+  // Title (merged A1:G1)
+  wd+=`<row r="${row}" ht="36" customHeight="1">${sc('A',row,si(titleStr),1)}${COLS.slice(1).map(c=>ec(c,row,1)).join('')}</row>`;mrg.push(`A${row}:G${row}`);row++;
+  // Subtitle (merged A2:G2)
+  wd+=`<row r="${row}" ht="22" customHeight="1">${sc('A',row,si(subStr),2)}${COLS.slice(1).map(c=>ec(c,row,2)).join('')}</row>`;mrg.push(`A${row}:G${row}`);row++;
+  // Spacer
+  wd+=`<row r="${row}" ht="6" customHeight="1"/>`;row++;
+  // Header
+  wd+=`<row r="${row}" ht="28" customHeight="1">${sc('A',row,si('ت'),3)}${sc('B',row,si('اسم الطالب'),3)}${sc('C',row,si('الشهر الأول'),4)}${sc('D',row,si('الشهر الثاني'),4)}${sc('E',row,si('الشهر الثالث'),4)}${sc('F',row,si('المعدل'),3)}${sc('G',row,si('النتيجة'),3)}</row>`;row++;
+
+  let pc=0,fc=0,sv=0,gc=0;
+  cls.students.forEach((name,idx)=>{
+    const g=getG(cid,idx);const avg=calcAvg(g);
+    let sN,sM,sR;
+    if(avg===null){sN=14;sM=15;sR=15;}
+    else if(avg>=80){sN=5;sM=6;sR=7;pc++;sv+=avg;gc++;}
+    else if(avg>=50){sN=8;sM=9;sR=10;pc++;sv+=avg;gc++;}
+    else{sN=11;sM=12;sR=13;fc++;sv+=avg;gc++;}
+    wd+=`<row r="${row}" ht="22" customHeight="1">${nc('A',row,idx+1,sM)}${sc('B',row,si(name),sN)}${g.m1!==undefined?nc('C',row,+g.m1,sM):sc('C',row,si('—'),sM)}${g.m2!==undefined?nc('D',row,+g.m2,sM):sc('D',row,si('—'),sM)}${g.m3!==undefined?nc('E',row,+g.m3,sM):sc('E',row,si('—'),sM)}${avg!==null?nc('F',row,avg,sM):sc('F',row,si('—'),sM)}${sc('G',row,si(avg!==null?gres(avg):'—'),sR)}</row>`;row++;
+  });
+
+  // Spacer
+  wd+=`<row r="${row}" ht="6" customHeight="1"/>`;row++;
+  // Summary
+  const fa=gc?Math.round(sv/gc):null;
+  const sumStr=`ناجح: ${pc} | راسب: ${fc}`;si(sumStr);
+  wd+=`<row r="${row}" ht="28" customHeight="1">${ec('A',row,16)}${sc('B',row,si('الملخص الإجمالي'),16)}${ec('C',row,16)}${ec('D',row,16)}${ec('E',row,16)}${fa!==null?nc('F',row,fa,16):sc('F',row,si('—'),16)}${sc('G',row,si(sumStr),16)}</row>`;
+
+  const sheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols><col min="1" max="1" width="5.5" customWidth="1"/><col min="2" max="2" width="28" customWidth="1"/><col min="3" max="5" width="13" customWidth="1"/><col min="6" max="6" width="11" customWidth="1"/><col min="7" max="7" width="18" customWidth="1"/></cols><sheetData>${wd}</sheetData><mergeCells count="${mrg.length}">${mrg.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells><pageSetup orientation="portrait" fitToWidth="1" fitToHeight="0" paperSize="9"/></worksheet>`;
+
+  // ── Shared strings XML ──
+  const ssXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${SS.length}" uniqueCount="${SS.length}">${SS.map(s=>`<si><t xml:space="preserve">${xe(s)}</t></si>`).join('')}</sst>`;
+
+  // ── Workbook files ──
+  const ctXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+  const relsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+  const wbRelsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+  const wbXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="${xe(cls.name)}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+
+  // ── Build ZIP → XLSX ──
+  const zipBytes=makeZip([
+    {name:'[Content_Types].xml',       data:ctXml},
+    {name:'_rels/.rels',               data:relsXml},
+    {name:'xl/workbook.xml',           data:wbXml},
+    {name:'xl/_rels/workbook.xml.rels',data:wbRelsXml},
+    {name:'xl/worksheets/sheet1.xml',  data:sheetXml},
+    {name:'xl/sharedStrings.xml',      data:ssXml},
+    {name:'xl/styles.xml',             data:stylesXml},
+  ]);
+
+  const blob=new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${cls.name} - المبادئ الاساسية للحاسبات.xlsx`;
+  a.click();URL.revokeObjectURL(a.href);
+  toast(`تم تصدير ${cls.name} بنجاح ✓`,'success');
+}
+
+// Delete
+function delStudent(cid,idx){
+  const name=DATA.classes[cid].students[idx];
+  if(!confirm(`هل تريد حذف "${name}"؟`))return;
+  DATA.classes[cid].students.splice(idx,1);
+  for(let i=idx;i<DATA.classes[cid].students.length+1;i++){
+    const nx=localStorage.getItem(gk(cid,i+1));
+    if(nx)localStorage.setItem(gk(cid,i),nx);else localStorage.removeItem(gk(cid,i));
+  }
+  document.getElementById('class-count').textContent=`${DATA.classes[cid].students.length} طالب`;
+  renderList(cid);toast(`تم حذف "${name}"`,'info');
+}
+
+// Modal
+function openModal(cid){
+  const ov=document.getElementById('modal-overlay'),inp=document.getElementById('modal-input');
+  inp.value='';inp.style.borderColor='';ov.classList.add('show');setTimeout(()=>inp.focus(),280);
+  document.getElementById('modal-cancel').onclick=closeModal;
+  document.getElementById('modal-confirm').onclick=()=>{
+    const name=inp.value.trim();
+    if(!name){inp.style.borderColor='var(--danger)';return;}
+    DATA.classes[cid].students.push(name);closeModal();
+    document.getElementById('class-count').textContent=`${DATA.classes[cid].students.length} طالب`;
+    renderList(cid);toast(`تمت إضافة "${name}"`,'success');
+  };
+  inp.onkeydown=e=>{if(e.key==='Enter')document.getElementById('modal-confirm').click();if(e.key==='Escape')closeModal();inp.style.borderColor='';};
+  ov.onclick=e=>{if(e.target===ov)closeModal();};
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+
+// Toast
+function toast(msg,type='info'){
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${{success:'✓',error:'✕',info:'ℹ'}[type]||'•'}</span> ${msg}`;
+  document.getElementById('toast-ct').appendChild(el);setTimeout(()=>el.remove(),3200);
+}
+
+// Boot
+document.addEventListener('DOMContentLoaded',()=>{
+  initTheme();
+  document.getElementById('themeToggle').onclick=toggleTheme;
+  document.getElementById('homeLink').onclick=()=>go('home');
+  window.addEventListener('hashchange',route);
+  route();
+});
+</script>
+</body>
+</html>
